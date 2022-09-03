@@ -49,6 +49,10 @@ class payroll implements Callable<Integer> {
 
     private static final Pattern PERIOD_WAGE_PATTERN = compile("(SALARIO BASICO|S.I. INTEGRAL) \\+ {2}" + NUMBER_REGEX);
     private static final Pattern VACATIONS_PATTERN = compile("VACACIONES \\+ {2}" + NUMBER_REGEX);
+    private static final Pattern COLSANITAS_IN_PATTERN = compile("MEDIC PREP COLSANITAS \\+ {2}" + NUMBER_REGEX);
+    private static final Pattern CALAMITY_PATTERN = compile("CALAMIDAD DOMESTICA \\+ {2}" + NUMBER_REGEX);
+    private static final Pattern VOTE_PATTERN = compile("DIA LIBRE POR VOTACION \\+ {2}" + NUMBER_REGEX);
+    private static final Pattern DISABILITY_PATTERN = compile("INCAPACIDAD POR \\+ {2}" + NUMBER_REGEX);
     private static final Pattern TOTAL_WAGE_PATTERN = compile("TOTAL DEVENGADOS {2}" + NUMBER_REGEX);
 
     private static final Pattern RETENTION_PATTERN = compile("RETENCION EN LA FUENTE - {2}" + NUMBER_REGEX);
@@ -56,6 +60,8 @@ class payroll implements Callable<Integer> {
     private static final Pattern PENSION_PATTERN = compile("DEDUCCION PENSION - {2}" + NUMBER_REGEX);
     private static final Pattern SOLIDARITY_PATTERN = compile("FONDO DE SOLIDARIDAD - {2}" + NUMBER_REGEX);
     private static final Pattern AFC_PATTERN = compile("AFC BANCOLOMBIA - {2}" + NUMBER_REGEX);
+    private static final Pattern COLSANITAS_OUT_PATTERN = compile("MEDIC PREP COLSANITAS - {2}" + NUMBER_REGEX);
+    private static final Pattern DAVIVIENDA_PATTERN = compile("DED CRED DAVIVIENDA - {2}" + NUMBER_REGEX);
     private static final Pattern TOTAL_DEDUCTIONS_PATTERN = compile("TOTAL DEDUCCIONES {2}" + NUMBER_REGEX);
 
     private static final Pattern TOTAL_PAYMENT_PATTERN = compile("TOTAL A PAGAR: {2}" + NUMBER_REGEX);
@@ -88,12 +94,18 @@ class payroll implements Callable<Integer> {
                         .wage(extractValue(strippedText, WAGE_PATTERN, 1, NUMBER_FORMAT::parse))
                         .periodWage(extractValue(strippedText, PERIOD_WAGE_PATTERN, 2, NUMBER_FORMAT::parse))
                         .vacations(extractValue(strippedText, VACATIONS_PATTERN, 1, NUMBER_FORMAT::parse))
+                        .colsanitasIn(extractValue(strippedText, COLSANITAS_IN_PATTERN, 1, NUMBER_FORMAT::parse))
+                        .calamity(extractValue(strippedText, CALAMITY_PATTERN, 1, NUMBER_FORMAT::parse))
+                        .vote(extractValue(strippedText, VOTE_PATTERN, 1, NUMBER_FORMAT::parse))
+                        .disability(extractValue(strippedText, DISABILITY_PATTERN, 1, NUMBER_FORMAT::parse))
                         .totalWage(extractValue(strippedText, TOTAL_WAGE_PATTERN, 1, NUMBER_FORMAT::parse))
                         .retention(extractValue(strippedText, RETENTION_PATTERN, 1, NUMBER_FORMAT::parse))
                         .health(extractValue(strippedText, HEALTH_PATTERN, 1, NUMBER_FORMAT::parse))
                         .pension(extractValue(strippedText, PENSION_PATTERN, 1, NUMBER_FORMAT::parse))
                         .solidarity(extractValue(strippedText, SOLIDARITY_PATTERN, 1, NUMBER_FORMAT::parse))
                         .afc(extractValue(strippedText, AFC_PATTERN, 1, NUMBER_FORMAT::parse))
+                        .colsanitasOut(extractValue(strippedText, COLSANITAS_OUT_PATTERN, 1, NUMBER_FORMAT::parse))
+                        .davivienda(extractValue(strippedText, DAVIVIENDA_PATTERN, 1, NUMBER_FORMAT::parse))
                         .totalDeductions(extractValue(strippedText, TOTAL_DEDUCTIONS_PATTERN, 1, NUMBER_FORMAT::parse))
                         .totalPayment(extractValue(strippedText, TOTAL_PAYMENT_PATTERN, 1, NUMBER_FORMAT::parse))
                         .build());
@@ -139,7 +151,11 @@ class payroll implements Callable<Integer> {
 
         Number periodWage;
         Number vacations;
+        Number colsanitasIn;
+        Number calamity;
         Number totalWage;
+        Number vote;
+        Number disability;
         Number missingEarnings;
 
         Number retention;
@@ -147,6 +163,8 @@ class payroll implements Callable<Integer> {
         Number pension;
         Number solidarity;
         Number afc;
+        Number colsanitasOut;
+        Number davivienda;
         Number totalDeductions;
         Number missingDeductions;
 
@@ -158,12 +176,18 @@ class payroll implements Callable<Integer> {
                             Number wage,
                             Number periodWage,
                             Number vacations,
+                            Number colsanitasIn,
+                            Number calamity,
+                            Number vote,
+                            Number disability,
                             Number totalWage,
                             Number retention,
                             Number health,
                             Number pension,
                             Number solidarity,
                             Number afc,
+                            Number colsanitasOut,
+                            Number davivienda,
                             Number totalDeductions,
                             Number totalPayment) {
             this.date = date;
@@ -171,6 +195,10 @@ class payroll implements Callable<Integer> {
             this.wage = wage;
             this.periodWage = periodWage;
             this.vacations = vacations;
+            this.colsanitasIn = colsanitasIn;
+            this.calamity = calamity;
+            this.vote = vote;
+            this.disability = disability;
             this.totalWage = totalWage;
             this.missingEarnings = calculateMissingEarnings();
             this.retention = retention;
@@ -178,13 +206,15 @@ class payroll implements Callable<Integer> {
             this.pension = pension;
             this.solidarity = solidarity;
             this.afc = afc;
+            this.colsanitasOut = colsanitasOut;
+            this.davivienda = davivienda;
             this.totalDeductions = totalDeductions;
             this.missingDeductions = calculateMissingDeductions();
             this.totalPayment = totalPayment;
         }
 
         private Number calculateMissingEarnings() {
-            Double sumOfIndividualEarnings = Stream.of(periodWage, vacations)
+            Double sumOfIndividualEarnings = Stream.of(periodWage, vacations, colsanitasIn, calamity, vote, disability)
                     .filter(Objects::nonNull)
                     .map(Number::doubleValue)
                     .reduce(Double::sum)
@@ -197,7 +227,7 @@ class payroll implements Callable<Integer> {
         }
 
         private Number calculateMissingDeductions() {
-            Double sumOfIndividualDeductions = Stream.of(retention, health, pension, solidarity, afc)
+            Double sumOfIndividualDeductions = Stream.of(retention, health, pension, solidarity, afc, colsanitasOut, davivienda)
                     .filter(Objects::nonNull)
                     .map(Number::doubleValue)
                     .reduce(Double::sum)
@@ -216,6 +246,10 @@ class payroll implements Callable<Integer> {
                     "wage",
                     "periodWage",
                     "vacations",
+                    "colsanitasIn",
+                    "calamity",
+                    "vote",
+                    "disability",
                     "totalWage",
                     "missingEarnings",
                     "retention",
@@ -223,6 +257,8 @@ class payroll implements Callable<Integer> {
                     "pension",
                     "solidarity",
                     "afc",
+                    "colsanitasOut",
+                    "davivienda",
                     "totalDeductions",
                     "missingDeductions",
                     "totalPayment"
@@ -236,6 +272,10 @@ class payroll implements Callable<Integer> {
                     wage,
                     periodWage,
                     vacations,
+                    colsanitasIn,
+                    calamity,
+                    vote,
+                    disability,
                     totalWage,
                     missingEarnings,
                     retention,
@@ -243,6 +283,8 @@ class payroll implements Callable<Integer> {
                     pension,
                     solidarity,
                     afc,
+                    colsanitasOut,
+                    davivienda,
                     totalDeductions,
                     missingDeductions,
                     totalPayment
