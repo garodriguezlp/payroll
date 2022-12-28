@@ -53,6 +53,7 @@ class payroll implements Callable<Integer> {
     private static final Pattern CALAMITY_PATTERN = compile("CALAMIDAD DOMESTICA \\+ {2}" + NUMBER_REGEX);
     private static final Pattern VOTE_PATTERN = compile("DIA LIBRE POR VOTACION \\+ {2}" + NUMBER_REGEX);
     private static final Pattern DISABILITY_PATTERN = compile("INCAPACIDAD POR \\+ {2}" + NUMBER_REGEX);
+    private static final Pattern FREE_DAT_INTEGRAL_SALARY_PATTERN = compile("DIA LIBRE SALARIO INTEGRAL \\+ {2}" + NUMBER_REGEX);
     private static final Pattern TOTAL_WAGE_PATTERN = compile("TOTAL DEVENGADOS {2}" + NUMBER_REGEX);
 
     private static final Pattern RETENTION_PATTERN = compile("RETENCION EN LA FUENTE - {2}" + NUMBER_REGEX);
@@ -98,6 +99,7 @@ class payroll implements Callable<Integer> {
                         .calamity(extractValue(strippedText, CALAMITY_PATTERN, 1, NUMBER_FORMAT::parse))
                         .vote(extractValue(strippedText, VOTE_PATTERN, 1, NUMBER_FORMAT::parse))
                         .disability(extractValue(strippedText, DISABILITY_PATTERN, 1, NUMBER_FORMAT::parse))
+                        .freeDayIntegralSalary(extractValue(strippedText, FREE_DAT_INTEGRAL_SALARY_PATTERN, 1, NUMBER_FORMAT::parse))
                         .totalWage(extractValue(strippedText, TOTAL_WAGE_PATTERN, 1, NUMBER_FORMAT::parse))
                         .retention(extractValue(strippedText, RETENTION_PATTERN, 1, NUMBER_FORMAT::parse))
                         .health(extractValue(strippedText, HEALTH_PATTERN, 1, NUMBER_FORMAT::parse))
@@ -156,6 +158,7 @@ class payroll implements Callable<Integer> {
         Number totalWage;
         Number vote;
         Number disability;
+        Number freeDayIntegralSalary;
         Number missingEarnings;
 
         Number retention;
@@ -180,6 +183,7 @@ class payroll implements Callable<Integer> {
                             Number calamity,
                             Number vote,
                             Number disability,
+                            Number freeDayIntegralSalary,
                             Number totalWage,
                             Number retention,
                             Number health,
@@ -199,6 +203,7 @@ class payroll implements Callable<Integer> {
             this.calamity = calamity;
             this.vote = vote;
             this.disability = disability;
+            this.freeDayIntegralSalary = freeDayIntegralSalary;
             this.totalWage = totalWage;
             this.missingEarnings = calculateMissingEarnings();
             this.retention = retention;
@@ -241,27 +246,28 @@ class payroll implements Callable<Integer> {
 
         public static String[] getHeaders() {
             return new String[]{
-                    "date",
-                    "workHours",
-                    "wage",
-                    "periodWage",
-                    "vacations",
-                    "colsanitasIn",
-                    "calamity",
-                    "vote",
-                    "disability",
-                    "totalWage",
-                    "missingEarnings",
-                    "retention",
-                    "health",
-                    "pension",
-                    "solidarity",
-                    "afc",
-                    "colsanitasOut",
-                    "davivienda",
-                    "totalDeductions",
-                    "missingDeductions",
-                    "totalPayment"
+                "date",
+                "workHours",
+                "wage",
+                "periodWage",
+                "vacations",
+                "colsanitasIn",
+                "calamity",
+                "vote",
+                "disability",
+                "freeDayIntegralSalary",
+                "totalWage",
+                "missingEarnings",
+                "retention",
+                "health",
+                "pension",
+                "solidarity",
+                "afc",
+                "colsanitasOut",
+                "davivienda",
+                "totalDeductions",
+                "missingDeductions",
+                "totalPayment"
             };
         }
 
@@ -276,6 +282,7 @@ class payroll implements Callable<Integer> {
                     calamity,
                     vote,
                     disability,
+                    freeDayIntegralSalary,
                     totalWage,
                     missingEarnings,
                     retention,
