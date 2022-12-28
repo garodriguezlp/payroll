@@ -21,12 +21,14 @@ import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.text.NumberFormat.getNumberInstance;
@@ -113,8 +115,14 @@ class payroll implements Callable<Integer> {
                         .build());
             }
         }
-        printAsCSV(payrollInfoList);
+        printAsCSV(sortByDate(payrollInfoList));
         return 0;
+    }
+
+    private List<PayrollInfo> sortByDate(List<PayrollInfo> payrollInfoList) {
+        return payrollInfoList.stream()
+            .sorted(Comparator.comparing(PayrollInfo::getDate))
+            .collect(Collectors.toList());
     }
 
     private PDFTextStripper buildPDFTextStripper() throws IOException {
@@ -219,29 +227,38 @@ class payroll implements Callable<Integer> {
         }
 
         private Number calculateMissingEarnings() {
-            Double sumOfIndividualEarnings = Stream.of(periodWage, vacations, colsanitasIn, calamity, vote, disability)
-                    .filter(Objects::nonNull)
-                    .map(Number::doubleValue)
-                    .reduce(Double::sum)
-                    .orElse(0.0);
-
-            return Optional.ofNullable(totalWage)
-                    .map(Number::doubleValue)
-                    .map(totalWage1 -> totalWage1 - sumOfIndividualEarnings)
-                    .orElse(sumOfIndividualEarnings);
+            return calculateDifferences(totalWage,
+                periodWage,
+                vacations,
+                colsanitasIn,
+                calamity,
+                vote,
+                disability,
+                freeDayIntegralSalary);
         }
 
         private Number calculateMissingDeductions() {
-            Double sumOfIndividualDeductions = Stream.of(retention, health, pension, solidarity, afc, colsanitasOut, davivienda)
-                    .filter(Objects::nonNull)
-                    .map(Number::doubleValue)
-                    .reduce(Double::sum)
-                    .orElse(0.0);
+            return calculateDifferences(totalDeductions,
+                retention,
+                health,
+                pension,
+                solidarity,
+                afc,
+                colsanitasOut,
+                davivienda);
+        }
 
-            return Optional.ofNullable(totalDeductions)
-                    .map(Number::doubleValue)
-                    .map(totalDeductions1 -> totalDeductions1 - sumOfIndividualDeductions)
-                    .orElse(sumOfIndividualDeductions);
+        private Number calculateDifferences(Number expected, Number... items){
+            Double sumOfItems = Stream.of(items)
+                .filter(Objects::nonNull)
+                .map(Number::doubleValue)
+                .reduce(Double::sum)
+                .orElse(0.0);
+
+            return Optional.ofNullable(expected)
+                .map(Number::doubleValue)
+                .map(e -> e - sumOfItems)
+                .orElse(sumOfItems);
         }
 
         public static String[] getHeaders() {
@@ -255,7 +272,7 @@ class payroll implements Callable<Integer> {
                 "calamity",
                 "vote",
                 "disability",
-                "freeDayIntegralSalary",
+                "freeDay",
                 "totalWage",
                 "missingEarnings",
                 "retention",
