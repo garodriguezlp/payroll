@@ -65,6 +65,7 @@ class payroll implements Callable<Integer> {
     private static final Pattern AFC_PATTERN = compile("AFC BANCOLOMBIA - {2}" + NUMBER_REGEX);
     private static final Pattern COLSANITAS_OUT_PATTERN = compile("MEDIC PREP COLSANITAS - {2}" + NUMBER_REGEX);
     private static final Pattern DAVIVIENDA_PATTERN = compile("DED CRED DAVIVIENDA - {2}" + NUMBER_REGEX);
+    private static final Pattern COLSANITAS_BENEFICIARY_PATTERN = compile("DEDUC EMPLEADO - {2}" + NUMBER_REGEX);
     private static final Pattern TOTAL_DEDUCTIONS_PATTERN = compile("TOTAL DEDUCCIONES {2}" + NUMBER_REGEX);
 
     private static final Pattern TOTAL_PAYMENT_PATTERN = compile("TOTAL A PAGAR: {2}" + NUMBER_REGEX);
@@ -109,6 +110,7 @@ class payroll implements Callable<Integer> {
                         .solidarity(extractValue(strippedText, SOLIDARITY_PATTERN, 1, NUMBER_FORMAT::parse))
                         .afc(extractValue(strippedText, AFC_PATTERN, 1, NUMBER_FORMAT::parse))
                         .colsanitasOut(extractValue(strippedText, COLSANITAS_OUT_PATTERN, 1, NUMBER_FORMAT::parse))
+                        .colsanitasBeneficiary(extractValue(strippedText, COLSANITAS_BENEFICIARY_PATTERN, 1, NUMBER_FORMAT::parse))
                         .davivienda(extractValue(strippedText, DAVIVIENDA_PATTERN, 1, NUMBER_FORMAT::parse))
                         .totalDeductions(extractValue(strippedText, TOTAL_DEDUCTIONS_PATTERN, 1, NUMBER_FORMAT::parse))
                         .totalPayment(extractValue(strippedText, TOTAL_PAYMENT_PATTERN, 1, NUMBER_FORMAT::parse))
@@ -175,6 +177,7 @@ class payroll implements Callable<Integer> {
         Number solidarity;
         Number afc;
         Number colsanitasOut;
+        Number colsanitasBeneficiary;
         Number davivienda;
         Number totalDeductions;
         Number missingDeductions;
@@ -199,6 +202,7 @@ class payroll implements Callable<Integer> {
                             Number solidarity,
                             Number afc,
                             Number colsanitasOut,
+                            Number colsanitasBeneficiary,
                             Number davivienda,
                             Number totalDeductions,
                             Number totalPayment) {
@@ -220,6 +224,7 @@ class payroll implements Callable<Integer> {
             this.solidarity = solidarity;
             this.afc = afc;
             this.colsanitasOut = colsanitasOut;
+            this.colsanitasBeneficiary = colsanitasBeneficiary;
             this.davivienda = davivienda;
             this.totalDeductions = totalDeductions;
             this.missingDeductions = calculateMissingDeductions();
@@ -245,6 +250,7 @@ class payroll implements Callable<Integer> {
                 solidarity,
                 afc,
                 colsanitasOut,
+                colsanitasBeneficiary,
                 davivienda);
         }
 
@@ -281,6 +287,7 @@ class payroll implements Callable<Integer> {
                 "Solidaridad",
                 "AFC",
                 "Colsanitas egreso",
+                "Colsanitas beneficiario",
                 "Davivienda",
                 "Total deducciones",
                 "Deducciones faltantes",
@@ -308,6 +315,7 @@ class payroll implements Callable<Integer> {
                 solidarity,
                 afc,
                 colsanitasOut,
+                colsanitasBeneficiary,
                 davivienda,
                 totalDeductions,
                 missingDeductions,
