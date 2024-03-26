@@ -62,7 +62,7 @@ class payroll implements Callable<Integer> {
     private static final Pattern HEALTH_PATTERN = compile("DEDUCCION SALUD - {2}" + NUMBER_REGEX);
     private static final Pattern PENSION_PATTERN = compile("DEDUCCION PENSION - {2}" + NUMBER_REGEX);
     private static final Pattern SOLIDARITY_PATTERN = compile("FONDO DE SOLIDARIDAD - {2}" + NUMBER_REGEX);
-    private static final Pattern AFC_PATTERN = compile("AFC BANCOLOMBIA - {2}" + NUMBER_REGEX);
+    private static final Pattern AFC_PATTERN = compile("AFC .* - {2}" + NUMBER_REGEX);
     private static final Pattern COLSANITAS_OUT_PATTERN = compile("MEDIC PREP COLSANITAS - {2}" + NUMBER_REGEX);
     private static final Pattern DAVIVIENDA_PATTERN = compile("DED CRED DAVIVIENDA - {2}" + NUMBER_REGEX);
     private static final Pattern COLSANITAS_BENEFICIARY_PATTERN = compile("DEDUC EMPLEADO - {2}" + NUMBER_REGEX);
